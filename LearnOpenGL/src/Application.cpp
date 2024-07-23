@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <memory>
 
 
 struct ShaderProgramSource
@@ -46,7 +47,7 @@ static ShaderProgramSource ParseShader(const std::string& file_path)
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
     unsigned int id = glCreateShader(type);
-    const char* src = source.c_str();       // Convert the source string to a C-style string, can also use ' &source[0] '
+    const char* src = source.c_str();       // Convert the source string to a C-style string
     glShaderSource(id, 1, &src, nullptr);
     glCompileShader(id);
 
@@ -57,10 +58,13 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
     {
         int len;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &len);
-        char* message = (char*)alloca(len * sizeof(char));  // We did not use malloc becuase that requires manual deallocation, while alloca does it automatically
-        glGetShaderInfoLog(id, len, &len, message);
-        std::cout << "ERROR::Application.cpp::CompileShader():: Failed to compile"<< (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << "shader" << std::endl;
-        std::cout << message << std::endl;
+
+        //char* message = (char*)alloca(len * sizeof(char));  // We did not use malloc becuase that requires manual deallocation, while alloca does it automatically
+        std::unique_ptr<char[]> message = std::make_unique<char[]>(len);
+        
+        glGetShaderInfoLog(id, len, &len, message.get());
+        std::cout << "ERROR::Application.cpp::CompileShader():: Failed to compile "<< (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader" << std::endl;
+        std::cout << message.get() << std::endl;
         glDeleteShader(id);
         return 0;
     }
@@ -115,16 +119,20 @@ int main(void)
 
 
     //Setting up a vertex buffer for triangle
-    float positions[6] = {
+    float positions[] = {
         -0.5f, -0.5f,
-         0.0f , 0.5f,
-         0.5f, -0.5f 
+         0.5f, -0.5f,
+         0.5f,  0.5f,
+
+         0.5f,  0.5f,
+        -0.5f,  0.5f,
+        -0.5f, -0.5f
     };
     
     unsigned int buffer;
     glGenBuffers(1, &buffer);       //Generating a buffer
     glBindBuffer(GL_ARRAY_BUFFER, buffer);      //Binding a buffer with a buffer target i.e. what we want the buffer to be ig
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);    //Giving buffer the data
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);    //Giving buffer the data
     
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
@@ -141,7 +149,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         //Drawing Triangle
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
         //Swaping front and back buffers
