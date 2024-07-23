@@ -118,17 +118,19 @@ int main(void)
         std::cout << "ERROR::Application.cpp::Main():: Failed to initialize GLEW" << std::endl;
 
 
-    //Setting up a vertex buffer for triangle
+    //Setting vertex positions for a square that is being made using 2 triangles- lower right & upper left
     float positions[] = {
-        -0.5f, -0.5f,
-         0.5f, -0.5f,
-         0.5f,  0.5f,
-
-         0.5f,  0.5f,
-        -0.5f,  0.5f,
-        -0.5f, -0.5f
+        -0.5f, -0.5f,   //Lower left    : index-0
+         0.5f, -0.5f,   //Lower right 
+         0.5f,  0.5f,   //Upper right 
+        -0.5f,  0.5f    //Upper left    : index-3
     };
     
+    unsigned int indices[] = {
+        0, 1, 2,    //Accessing vertices for lower right triangle
+        2, 3, 0     //for upper left triangle
+    };
+
     unsigned int buffer;
     glGenBuffers(1, &buffer);       //Generating a buffer
     glBindBuffer(GL_ARRAY_BUFFER, buffer);      //Binding a buffer with a buffer target i.e. what we want the buffer to be ig
@@ -136,6 +138,11 @@ int main(void)
     
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+
+    unsigned int ibo;   //ibo = index buffer object
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
     ShaderProgramSource sourceShader = ParseShader("res/shaders/BaseShader.shader");
     unsigned int shader = CreateShader(sourceShader.vertexSource, sourceShader.fragmentSource);
@@ -149,7 +156,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         //Drawing Triangle
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 
         //Swaping front and back buffers
