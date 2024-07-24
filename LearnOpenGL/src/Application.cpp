@@ -8,6 +8,70 @@
 #include <memory>
 
 
+//  MACROS  //
+#define ASSERT(x) if(!(x)) __debugbreak();  //Add a break point at the line where error occured
+#define glErrorCall(x) glClearErrors();\
+    x;\
+    ASSERT(glLogCall(#x, __FILE__, __LINE__))
+
+
+//  Error Handling  //
+// Helper function to convert error code to string
+const char* GetGLErrorString(GLenum error)
+{
+    switch (error)
+    {
+    case GL_NO_ERROR:
+        return "GL_NO_ERROR";
+    case GL_INVALID_ENUM:
+        return "GL_INVALID_ENUM";
+    case GL_INVALID_VALUE:
+        return "GL_INVALID_VALUE";
+    case GL_INVALID_OPERATION:
+        return "GL_INVALID_OPERATION";
+    case GL_STACK_OVERFLOW:
+        return "GL_STACK_OVERFLOW";
+    case GL_STACK_UNDERFLOW:
+        return "GL_STACK_UNDERFLOW";
+    case GL_OUT_OF_MEMORY:
+        return "GL_OUT_OF_MEMORY";
+    case GL_INVALID_FRAMEBUFFER_OPERATION:
+        return "GL_INVALID_FRAMEBUFFER_OPERATION";
+    default:
+        return "Unknown Error";
+    }
+}
+
+
+//Clearing previous errors
+static void glClearErrors()
+{
+    while (glGetError() != GL_NO_ERROR);
+}
+
+
+//Checking for new errors
+static bool glLogCall(const char* function, const char* file, int line)
+{
+    while (GLenum error = glGetError())
+    {
+        const char* errorString = GetGLErrorString(error);
+        std::cout << "ERROR::Type: " << errorString << "\n\tFunction: " << function << 
+            "\n\tFile: " << file << "\n\tLine: " << line << std::endl;
+        
+        return false;
+        /* 
+        If error is present, the loop returns false.
+        This works with the same concept of break and is used as a replacement because we needed a boolean function
+        */
+    }
+
+    return true;
+}
+
+
+//  Drawing //
+//Struct to handle source code for shaders
 struct ShaderProgramSource
 {
     std::string vertexSource;
@@ -15,6 +79,7 @@ struct ShaderProgramSource
 };
 
 
+//Dividing the source code in shaders so that they can easily be read separately
 static ShaderProgramSource ParseShader(const std::string& file_path)
 {
     std::ifstream stream(file_path);
@@ -27,6 +92,7 @@ static ShaderProgramSource ParseShader(const std::string& file_path)
     std::stringstream ss[2];
     ShaderType type = ShaderType::NONE;
 
+    //Reading the shader source file and using keywords to split it
     while (getline(stream, line))
     {
         if (line.find("#shader") != std::string::npos)
@@ -44,6 +110,7 @@ static ShaderProgramSource ParseShader(const std::string& file_path)
 }
 
 
+//Shader compilation 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
     unsigned int id = glCreateShader(type);
@@ -59,9 +126,9 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
         int len;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &len);
 
-        //char* message = (char*)alloca(len * sizeof(char));  // We did not use malloc becuase that requires manual deallocation, while alloca does it automatically
         std::unique_ptr<char[]> message = std::make_unique<char[]>(len);
-        
+        //char* message = (char*)alloca(len * sizeof(char));        //Alternate line for message pointer (normal pointer instead of smart)
+
         glGetShaderInfoLog(id, len, &len, message.get());
         std::cout << "ERROR::Application.cpp::CompileShader():: Failed to compile "<< (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader" << std::endl;
         std::cout << message.get() << std::endl;
@@ -72,7 +139,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
     return id;
 }
 
-
+//Creating the shader in a program after compiling them
 static unsigned int CreateShader(const std::string& vertex_shader, const std::string& fragment_shader)
 {
     unsigned int program = glCreateProgram();
@@ -131,22 +198,24 @@ int main(void)
         2, 3, 0     //for upper left triangle
     };
 
+    //Handling vertex buffers
     unsigned int buffer;
-    glGenBuffers(1, &buffer);       //Generating a buffer
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);      //Binding a buffer with a buffer target i.e. what we want the buffer to be ig
-    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);    //Giving buffer the data
+    glErrorCall( glGenBuffers(1, &buffer) );       //Generating a buffer
+    glErrorCall( glBindBuffer(GL_ARRAY_BUFFER, buffer) );      //Binding a buffer with a buffer target i.e. what we want the buffer to be ig
+    glErrorCall( glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW) );    //Giving buffer the data
     
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+    glErrorCall( glEnableVertexAttribArray(0) );
+    glErrorCall( glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0) );
 
+    //Handling index buffers
     unsigned int ibo;   //ibo = index buffer object
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    glErrorCall( glGenBuffers(1, &ibo) );
+    glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo) );
+    glErrorCall( glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW) );
 
     ShaderProgramSource sourceShader = ParseShader("res/shaders/BaseShader.shader");
     unsigned int shader = CreateShader(sourceShader.vertexSource, sourceShader.fragmentSource);
-    glUseProgram(shader);
+    glErrorCall( glUseProgram(shader) );
 
 
     //Game Loop 
@@ -156,7 +225,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         //Drawing Triangle
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        glErrorCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
 
         //Swaping front and back buffers
