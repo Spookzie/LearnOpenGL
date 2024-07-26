@@ -176,9 +176,9 @@ int main(void)
     }
 
 
-    //Make the window's context current
+    //Make the window's context current i.e. basically activates the window and makes sure all further changes are made on it
     glfwMakeContextCurrent(window);
-
+    glfwSwapInterval(1);    //Enabling v-sync
 
     //Initializing GLEW
     if (glewInit() != GLEW_OK)
@@ -217,16 +217,29 @@ int main(void)
     unsigned int shader = CreateShader(sourceShader.vertexSource, sourceShader.fragmentSource);
     glErrorCall( glUseProgram(shader) );
 
+    //Setting up color vector uniform
+    glErrorCall( int uColorLoc = glGetUniformLocation(shader, "u_Color") );
+    ASSERT(uColorLoc != -1);    //uColorLoc will be -1 if above line isn't able to find it, so this is just a bit of error handling
+    glErrorCall( glUniform4f(uColorLoc, 1.0f, 0.0f, 0.0f, 1.0f) );
+    
+    //Variables for color changing mechanism
+    float g = 0.0f;
+    float inc = 0.05f;
+
 
     //Game Loop 
     while (!glfwWindowShouldClose(window))
     {
         //  RENDER HERE  //
-        glClear(GL_COLOR_BUFFER_BIT);
+        glErrorCall( glClear(GL_COLOR_BUFFER_BIT) );
 
         //Drawing Triangle
+        glErrorCall(glUniform4f(uColorLoc, 0.6f, g, 0.3f, 1.0f));
         glErrorCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
+        if (g > 1.0f)   inc = -0.05f;
+        else if (g < 0.0f)   inc = 0.05f;
+        g += inc;
 
         //Swaping front and back buffers
         glfwSwapBuffers(window);
