@@ -166,6 +166,11 @@ int main(void)
     if (!glfwInit())
         std::cout << "ERROR::Application.cpp::Main():: Failed to initialize glfw" << std::endl;
 
+    //Setting OpenGL version & profile
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);  //Setting OpenGL version: 3._
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);  //Setting OpenGL version: 3.3
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  
+
 
     //Creating Window
     window = glfwCreateWindow(640, 480, "Triangle", NULL, NULL);
@@ -198,14 +203,21 @@ int main(void)
         2, 3, 0     //for upper left triangle
     };
 
+    //Handling vertex array objects
+    unsigned int vao;
+    glErrorCall( glGenVertexArrays(1, &vao) );
+    glErrorCall( glBindVertexArray(vao) );
+
+
     //Handling vertex buffers
     unsigned int buffer;
     glErrorCall( glGenBuffers(1, &buffer) );       //Generating a buffer
-    glErrorCall( glBindBuffer(GL_ARRAY_BUFFER, buffer) );      //Binding a buffer with a buffer target i.e. what we want the buffer to be ig
-    glErrorCall( glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW) );    //Giving buffer the data
+    glErrorCall( glBindBuffer(GL_ARRAY_BUFFER, buffer) );      //Binding the buffer
+    glErrorCall( glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW) );    //Updating vertex data
     
+    //Enabling & specifying vertex attributes
     glErrorCall( glEnableVertexAttribArray(0) );
-    glErrorCall( glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0) );
+    glErrorCall( glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof (float), 0) );
 
     //Handling index buffers
     unsigned int ibo;   //ibo = index buffer object
@@ -222,6 +234,12 @@ int main(void)
     ASSERT(uColorLoc != -1);    //uColorLoc will be -1 if above line isn't able to find it, so this is just a bit of error handling
     glErrorCall( glUniform4f(uColorLoc, 1.0f, 0.0f, 0.0f, 1.0f) );
     
+    //Unbinding all buffers
+    glErrorCall( glBindVertexArray(0) );
+    glErrorCall( glUseProgram(0) );
+    glErrorCall( glBindBuffer(GL_ARRAY_BUFFER, 0) );
+    glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) );
+
     //Variables for color changing mechanism
     float g = 0.0f;
     float inc = 0.05f;
@@ -233,16 +251,24 @@ int main(void)
         //  RENDER HERE  //
         glErrorCall( glClear(GL_COLOR_BUFFER_BIT) );
 
-        //Drawing Triangle
-        glErrorCall(glUniform4f(uColorLoc, 0.6f, g, 0.3f, 1.0f));
-        glErrorCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+        glErrorCall( glUseProgram(shader) );
+        glErrorCall( glUniform4f(uColorLoc, 0.6f, g, 0.3f, 1.0f) );
 
+        glErrorCall( glBindVertexArray(vao) );
+        glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo) );
+
+        //Drawing triangle
+        glErrorCall( glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr) );
+
+        //Color change loguc
         if (g > 1.0f)   inc = -0.05f;
         else if (g < 0.0f)   inc = 0.05f;
         g += inc;
 
+
         //Swaping front and back buffers
         glfwSwapBuffers(window);
+
 
         //Event polling
         glfwPollEvents();
