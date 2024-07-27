@@ -7,70 +7,11 @@
 #include <sstream>
 #include <memory>
 
-
-//  MACROS  //
-#define ASSERT(x) if(!(x)) __debugbreak();  //Add a break point at the line where error occured
-#define glErrorCall(x) glClearErrors();\
-    x;\
-    ASSERT(glLogCall(#x, __FILE__, __LINE__))
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 
-//  Error Handling  //
-// Helper function to convert error code to string
-const char* GetGLErrorString(GLenum error)
-{
-    switch (error)
-    {
-    case GL_NO_ERROR:
-        return "GL_NO_ERROR";
-    case GL_INVALID_ENUM:
-        return "GL_INVALID_ENUM";
-    case GL_INVALID_VALUE:
-        return "GL_INVALID_VALUE";
-    case GL_INVALID_OPERATION:
-        return "GL_INVALID_OPERATION";
-    case GL_STACK_OVERFLOW:
-        return "GL_STACK_OVERFLOW";
-    case GL_STACK_UNDERFLOW:
-        return "GL_STACK_UNDERFLOW";
-    case GL_OUT_OF_MEMORY:
-        return "GL_OUT_OF_MEMORY";
-    case GL_INVALID_FRAMEBUFFER_OPERATION:
-        return "GL_INVALID_FRAMEBUFFER_OPERATION";
-    default:
-        return "Unknown Error";
-    }
-}
-
-
-//Clearing previous errors
-static void glClearErrors()
-{
-    while (glGetError() != GL_NO_ERROR);
-}
-
-
-//Checking for new errors
-static bool glLogCall(const char* function, const char* file, int line)
-{
-    while (GLenum error = glGetError())
-    {
-        const char* errorString = GetGLErrorString(error);
-        std::cout << "ERROR::Type: " << errorString << "\n\tFunction: " << function << 
-            "\n\tFile: " << file << "\n\tLine: " << line << std::endl;
-        
-        return false;
-        /* 
-        If error is present, the loop returns false.
-        This works with the same concept of break and is used as a replacement because we needed a boolean function
-        */
-    }
-
-    return true;
-}
-
-
-//  Drawing //
 //Struct to handle source code for shaders
 struct ShaderProgramSource
 {
@@ -139,6 +80,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
     return id;
 }
 
+
 //Creating the shader in a program after compiling them
 static unsigned int CreateShader(const std::string& vertex_shader, const std::string& fragment_shader)
 {
@@ -189,93 +131,89 @@ int main(void)
     if (glewInit() != GLEW_OK)
         std::cout << "ERROR::Application.cpp::Main():: Failed to initialize GLEW" << std::endl;
 
+    std::cout << glGetString(GL_VERSION) << std::endl;
 
-    //Setting vertex positions for a square that is being made using 2 triangles- lower right & upper left
-    float positions[] = {
-        -0.5f, -0.5f,   //Lower left    : index-0
-         0.5f, -0.5f,   //Lower right 
-         0.5f,  0.5f,   //Upper right 
-        -0.5f,  0.5f    //Upper left    : index-3
-    };
-    
-    unsigned int indices[] = {
-        0, 1, 2,    //Accessing vertices for lower right triangle
-        2, 3, 0     //for upper left triangle
-    };
-
-    //Handling vertex array objects
-    unsigned int vao;
-    glErrorCall( glGenVertexArrays(1, &vao) );
-    glErrorCall( glBindVertexArray(vao) );
-
-
-    //Handling vertex buffers
-    unsigned int buffer;
-    glErrorCall( glGenBuffers(1, &buffer) );       //Generating a buffer
-    glErrorCall( glBindBuffer(GL_ARRAY_BUFFER, buffer) );      //Binding the buffer
-    glErrorCall( glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW) );    //Updating vertex data
-    
-    //Enabling & specifying vertex attributes
-    glErrorCall( glEnableVertexAttribArray(0) );
-    glErrorCall( glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof (float), 0) );
-
-    //Handling index buffers
-    unsigned int ibo;   //ibo = index buffer object
-    glErrorCall( glGenBuffers(1, &ibo) );
-    glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo) );
-    glErrorCall( glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW) );
-
-    ShaderProgramSource sourceShader = ParseShader("res/shaders/BaseShader.shader");
-    unsigned int shader = CreateShader(sourceShader.vertexSource, sourceShader.fragmentSource);
-    glErrorCall( glUseProgram(shader) );
-
-    //Setting up color vector uniform
-    glErrorCall( int uColorLoc = glGetUniformLocation(shader, "u_Color") );
-    ASSERT(uColorLoc != -1);    //uColorLoc will be -1 if above line isn't able to find it, so this is just a bit of error handling
-    glErrorCall( glUniform4f(uColorLoc, 1.0f, 0.0f, 0.0f, 1.0f) );
-    
-    //Unbinding all buffers
-    glErrorCall( glBindVertexArray(0) );
-    glErrorCall( glUseProgram(0) );
-    glErrorCall( glBindBuffer(GL_ARRAY_BUFFER, 0) );
-    glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) );
-
-    //Variables for color changing mechanism
-    float g = 0.0f;
-    float inc = 0.05f;
-
-
-    //Game Loop 
-    while (!glfwWindowShouldClose(window))
     {
-        //  RENDER HERE  //
-        glErrorCall( glClear(GL_COLOR_BUFFER_BIT) );
+        //Setting vertex positions for a square that is being made using 2 triangles- lower right & upper left
+        float positions[] = {
+            -0.5f, -0.5f,   //Lower left    : index-0
+             0.5f, -0.5f,   //Lower right 
+             0.5f,  0.5f,   //Upper right 
+            -0.5f,  0.5f    //Upper left    : index-3
+        };
 
-        glErrorCall( glUseProgram(shader) );
-        glErrorCall( glUniform4f(uColorLoc, 0.6f, g, 0.3f, 1.0f) );
+        unsigned int indices[] = {
+            0, 1, 2,    //Accessing vertices for lower right triangle
+            2, 3, 0     //for upper left triangle
+        };
 
-        glErrorCall( glBindVertexArray(vao) );
-        glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo) );
-
-        //Drawing triangle
-        glErrorCall( glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr) );
-
-        //Color change loguc
-        if (g > 1.0f)   inc = -0.05f;
-        else if (g < 0.0f)   inc = 0.05f;
-        g += inc;
-
-
-        //Swaping front and back buffers
-        glfwSwapBuffers(window);
+        //Handling vertex array objects
+        unsigned int vao;
+        glErrorCall(glGenVertexArrays(1, &vao));
+        glErrorCall(glBindVertexArray(vao));
 
 
-        //Event polling
-        glfwPollEvents();
+        VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+
+        //Enabling & specifying vertex attributes
+        glErrorCall(glEnableVertexAttribArray(0));
+        glErrorCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));
+
+        IndexBuffer ib(indices, 6);
+
+        ShaderProgramSource sourceShader = ParseShader("res/shaders/BaseShader.shader");
+        unsigned int shader = CreateShader(sourceShader.vertexSource, sourceShader.fragmentSource);
+        glErrorCall(glUseProgram(shader));
+
+        //Setting up color vector uniform
+        glErrorCall(int uColorLoc = glGetUniformLocation(shader, "u_Color"));
+        ASSERT(uColorLoc != -1);    //uColorLoc will be -1 if above line isn't able to find it, so this is just a bit of error handling
+        glErrorCall(glUniform4f(uColorLoc, 1.0f, 0.0f, 0.0f, 1.0f));
+
+        //Unbinding all buffers
+        glErrorCall(glBindVertexArray(0));
+        glErrorCall(glUseProgram(0));
+        glErrorCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+        glErrorCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+        //Variables for color changing mechanism
+        float g = 0.0f;
+        float inc = 0.05f;
+
+
+        //Game Loop 
+        while (!glfwWindowShouldClose(window))
+        {
+            //  RENDER HERE  //
+            glErrorCall(glClear(GL_COLOR_BUFFER_BIT));
+
+            glErrorCall(glUseProgram(shader));
+            glErrorCall(glUniform4f(uColorLoc, 0.4f, g, 0.8f, 1.0f));
+
+            glErrorCall(glBindVertexArray(vao));
+            ib.Bind();
+
+            //Drawing triangle
+            glErrorCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+            //Color change loguc
+            if (g > 1.0f)   inc = -0.05f;
+            else if (g < 0.0f)   inc = 0.05f;
+            g += inc;
+
+
+            //Swaping front and back buffers
+            glfwSwapBuffers(window);
+
+
+            //Event polling
+            glfwPollEvents();
+        }
+
+        glDeleteProgram(shader);
     }
 
-    glDeleteProgram(shader);
-
     glfwTerminate();
+    
     return 0;
 }
