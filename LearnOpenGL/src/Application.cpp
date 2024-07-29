@@ -148,11 +148,7 @@ int main(void)
             2, 3, 0     //for upper left triangle
         };
 
-        //Handling vertex array objects
-        unsigned int vao;
-        glErrorCall(glGenVertexArrays(1, &vao));
-        glErrorCall(glBindVertexArray(vao));
-
+        //Handling vertex array & buffers
         VertexArray va;
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
         VertexBufferLayout layout;
@@ -175,10 +171,10 @@ int main(void)
         glErrorCall(glUniform4f(uColorLoc, 1.0f, 0.0f, 0.0f, 1.0f));
 
         //Unbinding all buffers
-        glErrorCall(glBindVertexArray(0));
+        va.Unbind();
         glErrorCall(glUseProgram(0));
-        glErrorCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-        glErrorCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        vb.Unbind();
+        ib.Unbind();
 
         //Variables for color changing mechanism
         float g = 0.0f;
