@@ -10,6 +10,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 
 //Struct to handle source code for shaders
@@ -152,8 +153,11 @@ int main(void)
         glErrorCall(glGenVertexArrays(1, &vao));
         glErrorCall(glBindVertexArray(vao));
 
-
+        VertexArray va;
         VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.AddBuffer(vb, layout);
 
         //Enabling & specifying vertex attributes
         glErrorCall(glEnableVertexAttribArray(0));
@@ -190,7 +194,7 @@ int main(void)
             glErrorCall(glUseProgram(shader));
             glErrorCall(glUniform4f(uColorLoc, 0.4f, g, 0.8f, 1.0f));
 
-            glErrorCall(glBindVertexArray(vao));
+            va.Bind();
             ib.Bind();
 
             //Drawing triangle
