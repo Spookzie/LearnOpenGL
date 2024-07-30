@@ -4,24 +4,24 @@
 
 //Constructor
 IndexBuffer::IndexBuffer(const unsigned int* data, unsigned int count)
-    : m_Count(count)
+    : count(count)
 {
-    glErrorCall( glGenBuffers(1, &m_RendererID) );       //Generating a buffer
-    glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID) );      //Binding the buffer
+    glErrorCall( glGenBuffers(1, &rendererID) );       //Generating a buffer
+    glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendererID) );      //Binding the buffer
     glErrorCall( glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(unsigned int), data, GL_STATIC_DRAW));    //Updating vertex data
 }
 
 //Destructor
 IndexBuffer::~IndexBuffer()
 {
-    glErrorCall( glDeleteBuffers(1, &m_RendererID) );
+    glErrorCall( glDeleteBuffers(1, &rendererID) );
 }
 
 
 //Binding the buffers
 void IndexBuffer::Bind() const
 {
-    glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID) );
+    glErrorCall( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendererID) );
 
 }
 

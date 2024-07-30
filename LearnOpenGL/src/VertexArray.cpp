@@ -4,13 +4,13 @@
 //Constructor
 VertexArray::VertexArray()
 {
-	glErrorCall( glGenVertexArrays(1, &m_RendererID) );
+	glErrorCall( glGenVertexArrays(1, &rendererID) );
 }
 
 //Destructor
 VertexArray::~VertexArray()
 {
-	glErrorCall( glDeleteVertexArrays(1, &m_RendererID) );
+	glErrorCall( glDeleteVertexArrays(1, &rendererID) );
 }
 
 
@@ -38,7 +38,7 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 
 void VertexArray::Bind() const
 {
-	glErrorCall( glBindVertexArray(m_RendererID) );
+	glErrorCall( glBindVertexArray(rendererID) );
 }
 
 void VertexArray::Unbind() const

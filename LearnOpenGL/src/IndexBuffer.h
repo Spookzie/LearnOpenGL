@@ -4,8 +4,8 @@
 class IndexBuffer
 {
 private:
-	unsigned int m_RendererID;
-	unsigned int m_Count;
+	unsigned int rendererID;
+	unsigned int count;
 
 public:
 	//Constructor & Destructor
@@ -16,5 +16,5 @@ public:
 	void Unbind() const;
 
 	//Getter
-	inline unsigned int GetCount() const { return m_Count; }
+	inline unsigned int GetCount() const { return count; }
 };
