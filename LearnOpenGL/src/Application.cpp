@@ -9,6 +9,7 @@
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
@@ -68,10 +69,6 @@ int main(void)
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
-        //Enabling & specifying vertex attributes
-        glErrorCall(glEnableVertexAttribArray(0));
-        glErrorCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));
-
         IndexBuffer ib(indices, 6);
 
         //Setting up shader
@@ -85,6 +82,8 @@ int main(void)
         vb.Unbind();
         ib.Unbind();
 
+        Renderer renderer;
+
         //Variables for color changing mechanism
         float g = 0.0f;
         float inc = 0.05f;
@@ -94,16 +93,12 @@ int main(void)
         while (!glfwWindowShouldClose(window))
         {
             //  RENDER HERE  //
-            glErrorCall(glClear(GL_COLOR_BUFFER_BIT));
+            renderer.Clear();
 
             shader.Bind();
             shader.SetUniform4f("u_Color", 0.4f, g, 0.8f, 1.0f);
 
-            va.Bind();
-            ib.Bind();
-
-            //Drawing triangle
-            glErrorCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+            renderer.Draw(va, ib, shader);
 
             //Color change loguc
             if (g > 1.0f)   inc = -0.05f;
@@ -113,7 +108,6 @@ int main(void)
 
             //Swaping front and back buffers
             glfwSwapBuffers(window);
-
 
             //Event polling
             glfwPollEvents();

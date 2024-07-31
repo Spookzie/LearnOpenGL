@@ -2,6 +2,10 @@
 
 #include <GL/glew.h>
 
+#include "VertexArray.h"
+#include "IndexBuffer.h"
+#include "Shader.h"
+
 
 //  MACROS  //
 #define ASSERT(x) if(!(x)) __debugbreak();  //Add a break point at the line where error occured
@@ -14,3 +18,13 @@
 const char* GetGLErrorString(GLenum error);
 void glClearErrors();
 bool glLogCall(const char* function, const char* file, int line);
+
+
+class Renderer
+{
+private:
+
+public:
+    void Clear() const;
+    void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
+};
