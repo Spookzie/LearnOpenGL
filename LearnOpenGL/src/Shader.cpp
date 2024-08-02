@@ -34,6 +34,13 @@ void Shader::Unbind() const
 }
 
 
+void Shader::SetUniform1i(const std::string& name, int value)
+{
+    glErrorCall( glUniform1i(GetUniformLocation(name), value) );
+}
+
+
+//Setting the uniform's value in shader source code
 void Shader::SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3)
 {
     glErrorCall( glUniform4f(GetUniformLocation(name), v0, v1, v2, v3));
@@ -71,7 +78,7 @@ ShaderProgramSource Shader::ParseShader(const std::string& file_path)
 }
 
 
-//Shader compilation 
+//Compiling shader source code
 unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 {
     unsigned int id = glCreateShader(type);
@@ -101,7 +108,7 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 }
 
 
-//Creating the shader in a program after compiling them
+//Creating the shader in a program after compiling the source code
 unsigned int Shader::CreateShader(const std::string& vertex_shader, const std::string& fragment_shader)
 {
     unsigned int program = glCreateProgram();
@@ -120,7 +127,8 @@ unsigned int Shader::CreateShader(const std::string& vertex_shader, const std::s
 }
 
 
-unsigned int Shader::GetUniformLocation(const std::string& name)
+//Getting the uniform's location from shader source code
+int Shader::GetUniformLocation(const std::string& name)
 {
     if (uLocationCache.find(name) != uLocationCache.end())
         return uLocationCache[name];

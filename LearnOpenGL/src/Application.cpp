@@ -13,6 +13,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 
 int main(void)
@@ -30,7 +31,7 @@ int main(void)
 
 
     //Creating Window
-    window = glfwCreateWindow(640, 480, "Color changing rectangle", NULL, NULL);
+    window = glfwCreateWindow(640, 480, "Loading Texture", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -51,10 +52,10 @@ int main(void)
     {
         //Setting vertex positions for a square that is being made using 2 triangles- lower right & upper left
         float positions[] = {
-            -0.5f, -0.5f,   //Lower left    : index-0
-             0.5f, -0.5f,   //Lower right 
-             0.5f,  0.5f,   //Upper right 
-            -0.5f,  0.5f    //Upper left    : index-3
+            -0.5f, -0.5f,  0.0f,  0.0f, //Lower left    : index-0
+             0.5f, -0.5f,  1.0f,  0.0f, //Lower right 
+             0.5f,  0.5f,  1.0f,  1.0f, //Upper right 
+            -0.5f,  0.5f,  0.0f,  1.0f  //Upper left    : index-3
         };
 
         unsigned int indices[] = {
@@ -62,10 +63,14 @@ int main(void)
             2, 3, 0     //for upper left triangle
         };
 
+        glErrorCall(glEnable(GL_BLEND));
+        glErrorCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
         //Handling vertex array & buffers
         VertexArray va;
-        VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+        VertexBuffer vb(positions, 4 * 4 * sizeof(float));
         VertexBufferLayout layout;
+        layout.Push<float>(2);
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
@@ -75,6 +80,11 @@ int main(void)
         Shader shader("res/shaders/BaseShader.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 1.0f, 0.0f, 0.0f, 1.0f);
+
+        //Setting up texture
+        Texture texture("res/textures/Spookzie_Logo.png");
+        texture.Bind();
+        shader.SetUniform1i("u_Texture", 0);
 
         //Unbinding all buffers
         va.Unbind();
