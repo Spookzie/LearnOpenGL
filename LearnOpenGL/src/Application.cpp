@@ -1,5 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -50,12 +52,17 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     {
-        //Setting vertex positions for a square that is being made using 2 triangles- lower right & upper left
+        /*
+        Setting vertex positions & texture coordinates for texture.
+        We make the rectangle of texture by joining 2 triangles- an upper left & a lower right.
+        The first 2 floats of each vector define the position of each vertex to be drawn in window.
+        The next 2 floats define the texture coordinates for their resp. vertex.
+        */
         float positions[] = {
-            -0.5f, -0.5f,  0.0f,  0.0f, //Lower left    : index-0
-             0.5f, -0.5f,  1.0f,  0.0f, //Lower right 
-             0.5f,  0.5f,  1.0f,  1.0f, //Upper right 
-            -0.5f,  0.5f,  0.0f,  1.0f  //Upper left    : index-3
+            -0.5f, -0.5f, 0.0f, 0.0f, //Lower left    : index-0
+             0.5f, -0.5f, 1.0f, 0.0f, //Lower right 
+             0.5f,  0.5f, 1.0f, 1.0f, //Upper right 
+            -0.5f,  0.5f, 0.0f, 1.0f  //Upper left    : index-3
         };
 
         unsigned int indices[] = {
@@ -63,8 +70,9 @@ int main(void)
             2, 3, 0     //for upper left triangle
         };
 
-        glErrorCall(glEnable(GL_BLEND));
-        glErrorCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        //Blending
+        glErrorCall( glEnable(GL_BLEND) );
+        glErrorCall( glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) );
 
         //Handling vertex array & buffers
         VertexArray va;
@@ -76,10 +84,15 @@ int main(void)
 
         IndexBuffer ib(indices, 6);
 
+        //Projection matrix
+        //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+        glm::mat4 proj = glm::ortho(-1.0f, 1.0f, -0.75f, 0.75f);
+
         //Setting up shader
         Shader shader("res/shaders/BaseShader.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 1.0f, 0.0f, 0.0f, 1.0f);
+        shader.SetUniformMat4f("u_MVP", proj);
 
         //Setting up texture
         Texture texture("res/textures/Spookzie_Logo.png");

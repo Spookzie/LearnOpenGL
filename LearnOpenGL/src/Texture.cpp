@@ -1,5 +1,6 @@
 #include "Texture.h"
-#include "vendor/stb_image/stb_image.h"
+#include "stb_image/stb_image.h"
+
 
 //Constructor
 Texture::Texture(const std::string& file_path)
