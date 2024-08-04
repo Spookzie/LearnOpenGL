@@ -3,6 +3,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw_gl3.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -60,9 +63,9 @@ int main(void)
         */
         float positions[] = {
             200.0f, 200.0f, 0.0f, 0.0f, //Lower left    : index-0
-            600.0f, 200.0f, 1.0f, 0.0f, //Lower right 
-            600.0f, 600.0f, 1.0f, 1.0f, //Upper right 
-            200.0f, 600.0f, 0.0f, 1.0f  //Upper left    : index-3
+            400.0f, 200.0f, 1.0f, 0.0f, //Lower right 
+            400.0f, 400.0f, 1.0f, 1.0f, //Upper right 
+            200.0f, 400.0f, 0.0f, 1.0f  //Upper left    : index-3
         };
 
         unsigned int indices[] = {
@@ -87,14 +90,12 @@ int main(void)
         //MVP (model view projection)
         glm::mat4 proj = glm::ortho(0.0f, 1280.0f, 0.0f, 720.0f /*-1.0f, 1.0f*/);   //Projection matrix (orthographic)
         glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));    //View matrix
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(100, 100, 0));  //Model matrix
-        glm::mat4 mvp = proj * view * model;
+        
 
         //Setting up shader
         Shader shader("res/shaders/BaseShader.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 1.0f, 0.0f, 0.0f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", mvp);
 
         //Setting up texture
         Texture texture("res/textures/Spookzie_Logo.png");
@@ -109,26 +110,54 @@ int main(void)
 
         Renderer renderer;
 
-        //Variables for color changing mechanism
-        float g = 0.0f;
-        float inc = 0.05f;
 
+        //  ImGui   //
+        ImGui::CreateContext();
+        ImGui_ImplGlfwGL3_Init(window, true);
+        ImGui::StyleColorsDark();
+
+        //Demo window variables
+        bool show_demo_window = true;
+        bool show_another_window = false;
+        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+
+        glm::vec3 translation(100, 100, 0);
+
+        //Variables for color changing mechanism
+        //float g = 0.0f;
+        //float inc = 0.05f;
 
         //Game Loop 
         while (!glfwWindowShouldClose(window))
         {
-            //  RENDER HERE  //
             renderer.Clear();
 
+            ImGui_ImplGlfwGL3_NewFrame();
+
+            //MVP
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+            glm::mat4 mvp = proj * view * model;
+
             shader.Bind();
-            shader.SetUniform4f("u_Color", 0.4f, g, 0.8f, 1.0f);
+            //shader.SetUniform4f("u_Color", 0.4f, g, 0.8f, 1.0f);
+            shader.SetUniformMat4f("u_MVP", mvp);
 
             renderer.Draw(va, ib, shader);
 
             //Color change loguc
-            if (g > 1.0f)   inc = -0.05f;
-            else if (g < 0.0f)   inc = 0.05f;
-            g += inc;
+            //if (g > 1.0f)   inc = -0.05f;
+            //else if (g < 0.0f)   inc = 0.05f;
+            //g += inc;
+
+            //  Rendering ImGui stuff   //
+            {
+                ImGui::SliderFloat2("translation", &translation.x, 0.0f, 1280.0f);
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            }
+
+            ImGui::Render();
+            ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 
 
             //Swaping front and back buffers
@@ -138,6 +167,9 @@ int main(void)
             glfwPollEvents();
         }
     }
+
+    ImGui_ImplGlfwGL3_Shutdown();
+    ImGui::DestroyContext();
 
     glfwTerminate();
     
