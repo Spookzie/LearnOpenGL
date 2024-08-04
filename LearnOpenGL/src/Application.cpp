@@ -33,7 +33,7 @@ int main(void)
 
 
     //Creating Window
-    window = glfwCreateWindow(640, 480, "Loading Texture", NULL, NULL);
+    window = glfwCreateWindow(1280, 720, "Loading Texture", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -59,10 +59,10 @@ int main(void)
         The next 2 floats define the texture coordinates for their resp. vertex.
         */
         float positions[] = {
-            -0.5f, -0.5f, 0.0f, 0.0f, //Lower left    : index-0
-             0.5f, -0.5f, 1.0f, 0.0f, //Lower right 
-             0.5f,  0.5f, 1.0f, 1.0f, //Upper right 
-            -0.5f,  0.5f, 0.0f, 1.0f  //Upper left    : index-3
+            200.0f, 200.0f, 0.0f, 0.0f, //Lower left    : index-0
+            600.0f, 200.0f, 1.0f, 0.0f, //Lower right 
+            600.0f, 600.0f, 1.0f, 1.0f, //Upper right 
+            200.0f, 600.0f, 0.0f, 1.0f  //Upper left    : index-3
         };
 
         unsigned int indices[] = {
@@ -84,15 +84,17 @@ int main(void)
 
         IndexBuffer ib(indices, 6);
 
-        //Projection matrix
-        //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-        glm::mat4 proj = glm::ortho(-1.0f, 1.0f, -0.75f, 0.75f);
+        //MVP (model view projection)
+        glm::mat4 proj = glm::ortho(0.0f, 1280.0f, 0.0f, 720.0f /*-1.0f, 1.0f*/);   //Projection matrix (orthographic)
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));    //View matrix
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(100, 100, 0));  //Model matrix
+        glm::mat4 mvp = proj * view * model;
 
         //Setting up shader
         Shader shader("res/shaders/BaseShader.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 1.0f, 0.0f, 0.0f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", proj);
+        shader.SetUniformMat4f("u_MVP", mvp);
 
         //Setting up texture
         Texture texture("res/textures/Spookzie_Logo.png");
