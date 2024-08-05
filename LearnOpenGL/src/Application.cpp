@@ -62,10 +62,10 @@ int main(void)
         The next 2 floats define the texture coordinates for their resp. vertex.
         */
         float positions[] = {
-            200.0f, 200.0f, 0.0f, 0.0f, //Lower left    : index-0
-            400.0f, 200.0f, 1.0f, 0.0f, //Lower right 
-            400.0f, 400.0f, 1.0f, 1.0f, //Upper right 
-            200.0f, 400.0f, 0.0f, 1.0f  //Upper left    : index-3
+            -50.0f, -50.0f, 0.0f, 0.0f, //Lower left    : index-0
+             50.0f, -50.0f, 1.0f, 0.0f, //Lower right 
+             50.0f,  50.0f, 1.0f, 1.0f, //Upper right 
+            -50.0f,  50.0f, 0.0f, 1.0f  //Upper left    : index-3
         };
 
         unsigned int indices[] = {
@@ -88,14 +88,12 @@ int main(void)
         IndexBuffer ib(indices, 6);
 
         //MVP (model view projection)
-        glm::mat4 proj = glm::ortho(0.0f, 1280.0f, 0.0f, 720.0f /*-1.0f, 1.0f*/);   //Projection matrix (orthographic)
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));    //View matrix
+        glm::mat4 proj = glm::ortho(0.0f, 1280.0f, 0.0f, 720.0f /*-1.0f, 1.0f*/);
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
         
-
         //Setting up shader
         Shader shader("res/shaders/BaseShader.shader");
         shader.Bind();
-        shader.SetUniform4f("u_Color", 1.0f, 0.0f, 0.0f, 1.0f);
 
         //Setting up texture
         Texture texture("res/textures/Spookzie_Logo.png");
@@ -122,11 +120,8 @@ int main(void)
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
-        glm::vec3 translation(100, 100, 0);
-
-        //Variables for color changing mechanism
-        //float g = 0.0f;
-        //float inc = 0.05f;
+        glm::vec3 translationA(400, 400, 0);
+        glm::vec3 translationB(900, 400, 0);
 
         //Game Loop 
         while (!glfwWindowShouldClose(window))
@@ -135,24 +130,32 @@ int main(void)
 
             ImGui_ImplGlfwGL3_NewFrame();
 
-            //MVP
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-            glm::mat4 mvp = proj * view * model;
 
-            shader.Bind();
-            //shader.SetUniform4f("u_Color", 0.4f, g, 0.8f, 1.0f);
-            shader.SetUniformMat4f("u_MVP", mvp);
+            //  Drawing Textures    //
+            //First
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+                glm::mat4 mvp = proj * view * model;
+                shader.Bind();
+                shader.SetUniformMat4f("u_MVP", mvp);
 
-            renderer.Draw(va, ib, shader);
+                renderer.Draw(va, ib, shader);
+            }
 
-            //Color change loguc
-            //if (g > 1.0f)   inc = -0.05f;
-            //else if (g < 0.0f)   inc = 0.05f;
-            //g += inc;
+            //Second
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
+                glm::mat4 mvp = proj * view * model;
+                shader.SetUniformMat4f("u_MVP", mvp);
+
+                renderer.Draw(va, ib, shader);
+            }
+
 
             //  Rendering ImGui stuff   //
             {
-                ImGui::SliderFloat2("translation", &translation.x, 0.0f, 1280.0f);
+                ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 1280.0f);
+                ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 1280.0f);
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             }
 
