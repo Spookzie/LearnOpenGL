@@ -69,7 +69,7 @@ int main(void)
 
 
         //  Testing //
-        test::TestClearColor test;
+        test::TestClearColor clearColorTest;
 
 
         //  Game Loop   //
@@ -77,12 +77,12 @@ int main(void)
         {
             renderer.Clear();
 
-            test.OnUpdate(0.0f);
-            test.OnRender();
+            clearColorTest.OnUpdate(0.0f);
+            clearColorTest.OnRender();
 
             ImGui_ImplGlfwGL3_NewFrame();
 
-            test.OnImGuiRender();
+            clearColorTest.OnImGuiRender();
 
             ImGui::Render();
             ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
