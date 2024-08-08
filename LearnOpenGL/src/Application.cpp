@@ -69,20 +69,40 @@ int main(void)
 
 
         //  Testing //
-        test::TestClearColor clearColorTest;
+        //Creating test menu
+        test::Test* currentTest = nullptr;
+        test::TestMenu* testMenu = new test::TestMenu(currentTest);
+        currentTest = testMenu;
+
+        //Creating new test in the menu
+        testMenu->RegisterTest<test::TestClearColor>("Clear Color Test");
 
 
         //  Game Loop   //
         while (!glfwWindowShouldClose(window))
         {
+            glErrorCall( glClearColor(0.0f, 0.0f, 0.0f, 1.0f) );
             renderer.Clear();
-
-            clearColorTest.OnUpdate(0.0f);
-            clearColorTest.OnRender();
 
             ImGui_ImplGlfwGL3_NewFrame();
 
-            clearColorTest.OnImGuiRender();
+            //Handling the deletion of test pointer
+            if (currentTest)
+            {
+                currentTest->OnUpdate(0.0f);
+                currentTest->OnRender();
+                ImGui::Begin("Test");
+
+                //Deleting the current test & setting it back to the main menu on press of back button
+                if (currentTest != testMenu && ImGui::Button("<-"))
+                {
+                    delete currentTest;
+                    currentTest = testMenu;
+                }
+                
+                currentTest->OnImGuiRender();
+                ImGui::End();
+            }
 
             ImGui::Render();
             ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
@@ -94,6 +114,11 @@ int main(void)
             //Event polling
             glfwPollEvents();
         }
+
+        //Preventing memory leaks
+        delete currentTest;
+        if (currentTest != testMenu)
+            delete testMenu;
     }
 
     ImGui_ImplGlfwGL3_Shutdown();
