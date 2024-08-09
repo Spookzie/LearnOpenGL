@@ -20,6 +20,7 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "tests/TestClearColor.h"
+#include "tests/TestTexture2D.h"
 
 
 int main(void)
@@ -76,6 +77,7 @@ int main(void)
 
         //Creating new test in the menu
         testMenu->RegisterTest<test::TestClearColor>("Clear Color Test");
+        testMenu->RegisterTest<test::TestTexture2D>("2D Texture Test");
 
 
         //  Game Loop   //

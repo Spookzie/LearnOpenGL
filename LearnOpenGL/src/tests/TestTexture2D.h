@@ -13,11 +13,14 @@ namespace test
 	class TestTexture2D : public Test
 	{
 	private:
-		glm::vec3 translationA, translationB;
 		std::unique_ptr<VertexArray> va;
+		std::unique_ptr<VertexBuffer> vb;
 		std::unique_ptr<IndexBuffer> ib;
 		std::unique_ptr<Shader> shader;
 		std::unique_ptr<Texture> texture;
+
+		glm::vec3 translationA, translationB;
+		glm::mat4 proj, view;
 
 	public:
 		TestTexture2D();
