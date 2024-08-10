@@ -40,14 +40,6 @@ void Shader::SetUniform1i(const std::string& name, int value)
     glErrorCall( glUniform1i(GetUniformLocation(name), value) );
 }
 
-
-//Setting the uniform's value (in 4 floats) in shader source code
-void Shader::SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3)
-{
-    glErrorCall( glUniform4f(GetUniformLocation(name), v0, v1, v2, v3));
-}
-
-
 //Setting the uniform's value (in 1 matrix) in shader source code
 void Shader::SetUniformMat4f(const std::string& name, const glm::mat4 matrix)
 {
