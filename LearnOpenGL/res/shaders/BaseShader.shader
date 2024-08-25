@@ -1,31 +1,34 @@
 #shader vertex
 #version 330 core
 
-layout(location = 0) in vec4 position;
-layout(location = 1) in vec2 texCoord;
+layout(location = 0) in vec3 v_position;
+layout(location = 1) in vec3 v_color;
+layout(location = 2) in vec2 v_texCoord;
 
-out vec2 v_TexCoord;
-
-uniform mat4 u_MVP;
+out vec3 vs_position;
+out vec3 vs_color;
+out vec2 vs_texCoord;
 
 void main()
 {
-   gl_Position = u_MVP * position;
-   v_TexCoord = texCoord;
+   vs_position = v_position;
+   vs_color = v_color;
+   v_texCoord = vec2(v_texCoord.x, v_texCoord.y * -1.f);
+
+   gl_Position = vec4(v_position, 1.f);
 }
  
 
 #shader fragment
 #version 330 core
 
-layout(location = 0) out vec4 color; 
+in vec3 vs_position;
+in vec3 vs_color;
+in vec2 vs_texCoord;
 
-in vec2 v_TexCoord;
-
-uniform sampler2D u_Texture;
+out vec4 fs_color;
 
 void main()
 {
-	vec4 texColor = texture(u_Texture, v_TexCoord);
-	color = texColor;
+	fs_color = vec4(vs_color, 1.f);
 }
