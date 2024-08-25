@@ -12,13 +12,6 @@
 #include <sstream>
 #include <memory>
 
-#include "Renderer.h"
-#include "VertexBuffer.h"
-#include "VertexBufferLayout.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
-#include "Shader.h"
-#include "Texture.h"
 #include "tests/TestClearColor.h"
 #include "tests/TestTexture2D.h"
 
